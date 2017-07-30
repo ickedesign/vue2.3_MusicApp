@@ -11,6 +11,7 @@ var express = require('express')
 var webpack = require('webpack')
 var proxyMiddleware = require('http-proxy-middleware')
 var webpackConfig = require('./webpack.dev.conf')
+var axios = require('axios')
 
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
@@ -21,6 +22,38 @@ var autoOpenBrowser = !!config.dev.autoOpenBrowser
 var proxyTable = config.dev.proxyTable
 
 var app = express()
+
+// 定义后端代理接口
+var apiRoutes = express.Router()
+
+// 请求url地址时，不是请求qq服务端，而是自己的server端
+/*
+  向url地址发送一个http请求，同时修改headers，把浏览器端返回的
+  请求参数原封不动地透传给qq服务端。qq服务端收到请求后，响应。
+  我们通过res把响应内容输出到浏览器端，这样前端就能接收到数据
+*/
+apiRoutes.get('/getDiscList', function(req, res) {
+  var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+
+  axios.get(url, {
+    headers: {
+      referer: 'https://c.y.qq.com/',
+      host: 'c.y.qq.com'
+    },
+    // req.query是浏览器请求'/getDiscList'这个接口所带的参数
+    // 再把这个参数传给qq服务端的url地址
+    params: req.query
+  }).then((response) => {
+    // res是'/getDiscList'接口的响应
+    // response是qq接口返回的响应
+    res.json(response.data)
+  }).catch((e) => {
+    console.log(e)
+  })
+})
+
+app.use('/api', apiRoutes)
+
 var compiler = webpack(webpackConfig)
 
 var devMiddleware = require('webpack-dev-middleware')(compiler, {
