@@ -44,9 +44,7 @@
       }
     },
     created() {
-      setTimeout(() => {
-        this._getRecommend()
-      }, 2000)
+      this._getRecommend()
       this._getDiscList()
     },
     methods: {
@@ -66,6 +64,7 @@
       },
       loadImage() {
         if (!this.checkLoaded) {
+          // 调用的是scroll组件中的refresh()方法
           this.$refs.scroll.refresh()
           this.checkLoaded = true
         }
